@@ -11,15 +11,13 @@ public class PlayerOverview : NetworkBehaviour {
 
 	private PlayerManager playerManager;
 	private TurnManager turnManager;
-	private Scores scores;
 
-	private Player[] players = new Player[0];
-	private Player lastTurn;
+	private PlayerData[] players = new PlayerData[0];
+	private PlayerData lastTurn;
 
 	private void Start() {
 		playerManager = Manager.Find<PlayerManager>();
 		turnManager   = Manager.Find<TurnManager>();
-		scores        = Manager.Find<Scores>();
 	}
 
 	public void Update() {
@@ -29,7 +27,7 @@ public class PlayerOverview : NetworkBehaviour {
 		}
 
 		if (isServer) {
-			Player turnToPlayer = turnManager.TurnToPlayer;
+			PlayerData turnToPlayer = turnManager.TurnToPlayer;
 
 			if (turnToPlayer != lastTurn) {
 				lastTurn = turnToPlayer;
@@ -39,12 +37,17 @@ public class PlayerOverview : NetworkBehaviour {
 	}
 
 	[ClientRpc]
-	public void RpcTurnChanged(Player player) {
+	public void RpcTurnChanged(PlayerData player) {
 		for (int i = 0; i < transform.childCount; i++) {
 			GameObject child = transform.GetChild(i).gameObject;
-			child.transform.FindChild("Turn").gameObject.SetActive(child.name == player.displayName);
-			child.transform.FindChild("Score").GetComponent<Text>().text = scores.ScoreArray[i].ToString();
+			child.transform.Find("Turn").gameObject.SetActive(child.name == player.playerID.ToString());
+
+			if(child.name == player.playerID.ToString()) {
+				child.transform.Find("Score").GetComponent<Text>().text = player.score.ToString();
+			}
 		}
+
+		Debug.Log(player.ToString() + " <<");
 	}
 
 	private IEnumerator CreateList() {
@@ -54,16 +57,16 @@ public class PlayerOverview : NetworkBehaviour {
 
 		yield return null;
 
-		foreach(Player player in players) {
+		foreach(PlayerData player in players) {
 			GameObject newUI  = Instantiate(playerUITemplate, transform);
 			bool playerIsTurn = lastTurn != null && lastTurn.displayName == player.displayName;
 
-			newUI.name                                                   = player.displayName;
+			newUI.name                                                   = player.playerID.ToString();
 			newUI.GetComponent<Image>().color                            = player.color;
-			newUI.transform.FindChild("Name").GetComponent<Text>().text  = player.displayName;
-			newUI.transform.FindChild("Score").GetComponent<Text>().text = scores.ScoreArray[player.playerID].ToString();
+			newUI.transform.Find("Name").GetComponent<Text>().text  = player.displayName ;
+			newUI.transform.Find("Score").GetComponent<Text>().text = player.score.ToString();
 
-			newUI.transform.FindChild("Turn").gameObject.SetActive(playerIsTurn);
+			newUI.transform.Find("Turn").gameObject.SetActive(playerIsTurn);
 		}
 
 		RectTransform rectTransform = GetComponent<RectTransform>();

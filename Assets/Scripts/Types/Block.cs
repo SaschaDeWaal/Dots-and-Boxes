@@ -13,9 +13,9 @@ public class Block : NetworkBehaviour {
 	[SyncVar]
 	public int ownerID = -1;
 
-	private Player[] linesTaken = new Player[4];
+	private PlayerData[] linesTaken = new PlayerData[4];
 
-	public Player owner {
+	public PlayerData owner {
 		get { return Manager.Find<PlayerManager>().FindPlayerWithID(ownerID); }
 	}
 
@@ -40,22 +40,22 @@ public class Block : NetworkBehaviour {
 		get { return new Block[] {up, left, down, right};}
 	}
 #endregion
-
+	 
 
 	public void Set(Vector2 pos) {
-		this.pos = pos;
+		this.pos = pos;  
 	}
 
-	public Player GetLineOwner(RelativePosition pos) {
+	public PlayerData GetLineOwner(RelativePosition pos) {
 		return linesTaken[(int) pos];
 	}
 
-	public Player GetOwner() {
+	public PlayerData GetOwner() {
 		return owner;
 	}
 
 	[ServerCallback]
-	public void SetLine(Player player, RelativePosition pos, bool tellNeiber = true) {
+	public void SetLine(PlayerData player, RelativePosition pos, bool tellNeiber = true) {
 		if(tellNeiber && neibers[(int)pos] != null) {
 			neibers[(int)pos].SetLine(player, pos.Mirror(), false);
 		}
@@ -68,7 +68,7 @@ public class Block : NetworkBehaviour {
 	}
 
 	[ClientRpc]
-	public void RpcUpdateLineOwner(Player newOwner, RelativePosition positions) {
+	public void RpcUpdateLineOwner(PlayerData newOwner, RelativePosition positions) {
 		linesTaken[(int) positions] = newOwner;
 		TurnLineOn(newOwner, positions);
 	}
@@ -107,27 +107,29 @@ public class Block : NetworkBehaviour {
 
 
 	[ClientRpc]
-	public void RpcUpdateOwner(Player player) {
+	public void RpcUpdateOwner(PlayerData player) {
 		ownerID = player.networkID;
-		GameObject takenObj = transform.FindChild("taken").gameObject;
+		GameObject takenObj = transform.Find("taken").gameObject;
 		takenObj.GetComponent<SpriteRenderer>().color = owner.color;
 	}
 
 
-	private void TurnLineOn(Player player, RelativePosition pos) {
-		GameObject line = transform.FindChild("lines").GetChild((int)pos).gameObject;
+	private void TurnLineOn(PlayerData player, RelativePosition pos) {
+		GameObject line = transform.Find("lines").GetChild((int)pos).gameObject;
 		line.SetActive(true);
 		line.GetComponent<SpriteRenderer>().color = player.color;
 	}
 
 	[ServerCallback]
-	private void CloseCheck(Player player) {
+	private void CloseCheck(PlayerData player) {
 		if (IsClosed(new List<Block>())) {
 			List<Block> blocks = FindAll((int) pos.x, (int) pos.y, new List<Block>());
 			foreach (Block block in blocks) {
 				block.RpcUpdateOwner(player);
 			}
-			Manager.Find<Scores>().AddScore(player.playerID, blocks.Count);
+			player.score += blocks.Count;
+			Manager.Find<PlayerManager>().FindPlayerObjectWithPlayerData(player).RpcOnPlayerDataChanged(player);
+			//player.playerObject.RpcOnPlayerDataChanged(player);
 		}
 	}
 

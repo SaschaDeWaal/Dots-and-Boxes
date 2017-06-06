@@ -15,17 +15,13 @@ public class TurnManager : NetworkBehaviour {
 	}
 
 	private void Update() {
-
 		//check for when a user may left
 		if (playerTurn > playerManager.CountPlayers()-1) {
 			playerTurn = 0;
 		}
 	}
 
-	public void ReqeustAMove(Player player, Vector2 position, RelativePosition relativePosition) {
-
-		Debug.Log("turn reqeust by " + player.displayName);
-
+	public void ReqeustAMove(PlayerData player, Vector2 position, RelativePosition relativePosition) {
 		if (player.playerID == playerTurn) {
 			Grid grid = Manager.Find<Grid>();
 			Block block = grid.GetBlock((int) position.x, (int) position.y);
@@ -38,9 +34,11 @@ public class TurnManager : NetworkBehaviour {
 		}
 	}
 	 
-
-	public Player TurnToPlayer {
-		get { return (playerManager && playerManager.CountPlayers() > 0) ? playerManager.GetList()[playerTurn] : null; }
+	public PlayerData TurnToPlayer {
+		get {
+			int players = (playerManager) ? playerManager.CountPlayers() : 0;
+			return (players > 0) ? playerManager.GetList()[playerTurn% players] : null;
+		}
 	}
 
 	

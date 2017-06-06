@@ -5,25 +5,49 @@ using UnityEngine.Networking;
 
 public class PlayerManager : NetworkBehaviour {
 
-	private Player[] currentPlayers = new Player[0];
+	const int maxPlayers = 4;
 
-	private static PlayerManager instance = null;
-	public static PlayerManager Instance {
-		get {
-			if (instance == null) {
-				instance = GameObject.FindGameObjectWithTag("PlayerManager").GetComponent<PlayerManager>();
+	private PlayerData[] currentPlayers = new PlayerData[0];
+	private List<PlayerObject> playerObjects = new List<PlayerObject>();
+
+	public void ReqeustJoinGame(PlayerObject player) {
+		if (currentPlayers.Length < maxPlayers) {
+
+			List<PlayerData> newList = new List<PlayerData>(currentPlayers);
+
+			if(!newList.Contains(player.playerData)) {
+				newList.Add(player.playerData);
+				playerObjects.Add(player);
+
+				player.playerData.playerID = currentPlayers.Length;
+				currentPlayers = newList.ToArray();
+
+				StartCoroutine(SendNewList(currentPlayers));
+
+				Debug.Log("new player joined " + player.playerData.playerID);
+
+				player.RpcJoinReqeustResult(false, 202);
+				player.RpcOnPlayerDataChanged(player.playerData);
+			} else {
+				player.RpcJoinReqeustResult(true, 409);
 			}
-			return instance;
+		} else {
+			player.RpcJoinReqeustResult(true, 410);
 		}
 	}
 
-	public void SetList(Player[] list) {
-		if (isServer) {
-			StartCoroutine(SendNewList(list));
+	public void ReqeustLeaveGame(PlayerData player) {
+		List<PlayerData> newList = new List<PlayerData>(currentPlayers);
+
+		if(newList.Contains(player)) {
+			newList.Remove(player);
+			currentPlayers = newList.ToArray();
+
+			StartCoroutine(SendNewList(currentPlayers));
 		}
 	}
 
-	public Player[] GetList() {
+	public PlayerData[] GetList() {
 		return currentPlayers;
 	}
 
@@ -31,8 +55,8 @@ public class PlayerManager : NetworkBehaviour {
 		return currentPlayers.Length;
 	}
 
-	public Player FindPlayerWithID(int id) {
-		foreach (Player player in currentPlayers) {
+	public PlayerData FindPlayerWithID(int id) {
+		foreach (PlayerData player in currentPlayers) {
 			if (player.networkID == id) {
 				return player;
 			}
@@ -40,13 +64,22 @@ public class PlayerManager : NetworkBehaviour {
 		return null;
 	}
 
-	private IEnumerator SendNewList(Player[] list) {
+	public PlayerObject FindPlayerObjectWithPlayerData(PlayerData data) {
+		foreach(PlayerObject playerObject in playerObjects) {
+			if (playerObject.playerData == data) {
+				return playerObject;
+			}
+		}
+		return null;
+	}
+
+	private IEnumerator SendNewList(PlayerData[] list) {
 		yield return new WaitForSeconds(1f);
 		RpcOnNewPlayerList(list);
 	} 
 
 	[ClientRpc]
-	private void RpcOnNewPlayerList(Player[] list) {
+	private void RpcOnNewPlayerList(PlayerData[] list) {
 		currentPlayers = list;
 	}
 }
