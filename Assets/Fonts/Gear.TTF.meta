@@ -1,0 +1,21 @@
+fileFormatVersion: 2
+guid: b9002c8b5fb4d4148925b1235f850007
+timeCreated: 1497209209
+licenseType: Free
+TrueTypeFontImporter:
+  serializedVersion: 4
+  fontSize: 16
+  forceTextureCase: -2
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontName: Gear
+  fontNames:
+  - Gear
+  fallbackFontReferences: []
+  customCharacters: 
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

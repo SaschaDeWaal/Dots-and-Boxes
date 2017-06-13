@@ -5,10 +5,30 @@ using UnityEngine.Networking;
 
 public class PlayerManager : NetworkBehaviour {
 
-	const int maxPlayers = 4;
+	const int maxPlayers = 8;
 
 	private PlayerData[] currentPlayers = new PlayerData[0];
 	private List<PlayerObject> playerObjects = new List<PlayerObject>();
+	private string lastData = "";
+
+	private void UpdatePlayerData() {
+		if (isServer) {
+			List<PlayerData> list = new List<PlayerData>();
+			string total = "";
+			foreach (PlayerObject obj in playerObjects) {
+				list.Add(obj.playerData);
+				total += obj.playerData.ToString();
+			}
+			currentPlayers = list.ToArray();
+
+			//string compare is less heavy then Rpc calls
+			if (total != lastData) {
+				RpcUpdatePlayerList(currentPlayers);
+			}
+
+			lastData = total;
+		}
+	}
 
 	public void ReqeustJoinGame(PlayerObject player) {
 		if (currentPlayers.Length < maxPlayers) {
@@ -48,7 +68,19 @@ public class PlayerManager : NetworkBehaviour {
 	}
 
 	public PlayerData[] GetList() {
+		UpdatePlayerData();
 		return currentPlayers;
+	}
+
+	public PlayerData GetLocalPlayer() {
+		GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
+		foreach (GameObject player in players) {
+			if (player.GetComponent<PlayerObject>().isLocalPlayer) {
+				return player.GetComponent<PlayerObject>().playerData;
+			}
+		}
+
+		return null;
 	}
 
 	public int CountPlayers() {
@@ -80,6 +112,12 @@ public class PlayerManager : NetworkBehaviour {
 
 	[ClientRpc]
 	private void RpcOnNewPlayerList(PlayerData[] list) {
+		currentPlayers = list;
+	}
+
+	[ClientRpc]
+	private void RpcUpdatePlayerList(PlayerData[] list)
+	{
 		currentPlayers = list;
 	}
 }

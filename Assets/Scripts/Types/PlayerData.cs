@@ -17,6 +17,9 @@ public class PlayerData: PropertyAttribute {
 	public string displayName = "nameless";
 
 	[SyncVar]
+	public string avatar      = "http://studenthome.hku.nl/~Sascha.deWaal/land/avatar.php?id=none";
+
+	[SyncVar]
 	public int networkID      = -1;
 
 	[SyncVar]
@@ -24,11 +27,12 @@ public class PlayerData: PropertyAttribute {
 
 	//public PlayerObject playerObject = null;
 
-	public PlayerData(int playerID, int networkID, string displayName, Color color) {
+	public PlayerData(int playerID, int networkID, string displayName, Color color, string avatar) {
 		this.playerID    = playerID;
 		this.networkID   = networkID;
 		this.color       = color;
 		this.displayName = displayName;
+		this.avatar      = avatar;
 	}
 
 	public PlayerData() {

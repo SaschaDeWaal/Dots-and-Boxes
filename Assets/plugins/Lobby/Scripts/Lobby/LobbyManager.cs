@@ -185,6 +185,7 @@ namespace Prototype.NetworkLobby
         {
             if (_isMatchmaking)
             {
+				Debug.Log("!StopHostClbk");
 				matchMaker.DestroyMatch((NetworkID)_currentMatchID, 0, OnDestroyMatch);
 				_disconnectServer = true;
             }
@@ -199,7 +200,8 @@ namespace Prototype.NetworkLobby
 
         public void StopClientClbk()
         {
-            StopClient();
+			Debug.Log("!StopClientClbk");
+			StopClient();
 
             if (_isMatchmaking)
             {
@@ -249,6 +251,7 @@ namespace Prototype.NetworkLobby
 
 		public override void OnDestroyMatch(bool success, string extendedInfo)
 		{
+			Debug.Log("OnDestroyMatch");
 			base.OnDestroyMatch(success, extendedInfo);
 			if (_disconnectServer)
             {

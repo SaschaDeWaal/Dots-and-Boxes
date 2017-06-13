@@ -1,12 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Networking; 
+using UnityEngine.Networking;
+using SimpleJSON;
 
 public class PlayerObject : NetworkBehaviour {
-
-	private Color[] colors = new Color[] { new Color(1, 0, 0), new Color(0, 1, 0), new Color(0, 0, 1), new Color(1, 1, 0), new Color(1, 0, 1) };
-	private string[] names = new string[] { "player 1", "player 2", "player 3", "player 4" };
 
 	public string PlayerString = "";
 
@@ -19,23 +17,23 @@ public class PlayerObject : NetworkBehaviour {
 		}
 	}
 
-	private void Start() {
-		if(isServer) {
-			StartCoroutine(SetPlayerData());
-		}
-	}
 
 	[ServerCallback]
-	private IEnumerator SetPlayerData() {
-		int random = Random.Range(0, 4);
+	private IEnumerator SetPlayerData(string name, Color color, string avatarImage) {
 
 		_playerData.networkID   = GetId();
-		_playerData.displayName = names[random];
-		_playerData.color       = colors[random];
+		_playerData.displayName = name;
+		_playerData.color       = color;
+		_playerData.avatar      = avatarImage;
 
 		RpcOnPlayerDataChanged(_playerData);
 		yield return null;
 		ReqeustJoinGame();
+	}
+
+	[ServerCallback]
+	public void InitPlayer(string name, Color color, string avatarImage) {
+		StartCoroutine(SetPlayerData(name, color, avatarImage));
 	}
 
 	public override void OnNetworkDestroy() {
@@ -80,6 +78,11 @@ public class PlayerObject : NetworkBehaviour {
 	private void CmdReqeustAMove(Vector2 position, RelativePosition relativePosition) {
 		Manager.Find<TurnManager>().ReqeustAMove(playerData, position, relativePosition);
 	}
+
+	/*[Command]
+	private void CmdReadyToJoin(string name, Color color, string avatarImage) {
+		StartCoroutine(SetPlayerData(name, color, avatarImage));
+	}*/
 
 	[ServerCallback]
 	private void ReqeustJoinGame() {

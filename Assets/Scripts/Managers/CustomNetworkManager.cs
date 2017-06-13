@@ -10,7 +10,7 @@ public class CustomNetworkManager : NetworkManager {
 
 	private Dictionary<int, PlayerData> players = new Dictionary<int, PlayerData>();
 
-	private static CustomNetworkManager instance = null;
+	/*private static CustomNetworkManager instance = null;
 	public static CustomNetworkManager Instance {
 		get {
 			if (instance == null) {
@@ -19,7 +19,7 @@ public class CustomNetworkManager : NetworkManager {
 
 			return instance;
 		}
-	}
+	}*/
 
 	public override void OnServerConnect(NetworkConnection conn) {
 		Debug.Log("connect user: " + conn.address);

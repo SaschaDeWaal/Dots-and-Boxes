@@ -16,7 +16,15 @@ public class LoginUI : MonoBehaviour {
 	public GameObject MatchMaker;
 
 	private bool waitingOnLogin = false;
-	
+
+	private void Start() {
+		mailInput.text = PlayerPrefs.GetString("mail");
+		passInput.text = PlayerPrefs.GetString("pass");
+	}
+
+	private void OnEnable() {
+		gameObject.SetActive(!Manager.Find<AccountManager>().IsLoggedIn);
+	}
 
 	public void CreateAccount() {
 		Application.OpenURL("http://studenthome.hku.nl/~Sascha.deWaal/land/index.php?p=create");
@@ -50,6 +58,11 @@ public class LoginUI : MonoBehaviour {
 		if (isError) {
 			ShowMsg("Error", result);
 		} else {
+
+			PlayerPrefs.SetString("mail", mailInput.text);
+			PlayerPrefs.SetString("pass", passInput.text);
+			PlayerPrefs.Save();
+
 			MatchMaker.SetActive(true);
 			gameObject.SetActive(false);
 		}

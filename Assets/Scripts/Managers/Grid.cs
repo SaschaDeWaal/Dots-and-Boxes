@@ -7,6 +7,7 @@ public class Grid : NetworkBehaviour {
 
 	public GameObject boxTemplate;
 	private Block[,] blocks;
+	private Vector2 center = new Vector2(-1.7f, 0);
 
 	private void Start () {
 		CreateGrid(10);
@@ -23,7 +24,7 @@ public class Grid : NetworkBehaviour {
 			//create
 			for (int x = 0; x < size; x++) {
 				for (int y = 0; y < size; y++) {
-					GameObject spawnedObject = Instantiate(boxTemplate, new Vector3(x - halfSize, y - halfSize, 0),
+					GameObject spawnedObject = Instantiate(boxTemplate, new Vector3(x - halfSize + center.x, y - halfSize + center.y, 0),
 						Quaternion.Euler(0, 0, 0));
 					Block block = spawnedObject.GetComponent<Block>();
 					blocks[x, y] = block;

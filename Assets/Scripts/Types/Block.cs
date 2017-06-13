@@ -55,16 +55,24 @@ public class Block : NetworkBehaviour {
 	}
 
 	[ServerCallback]
-	public void SetLine(PlayerData player, RelativePosition pos, bool tellNeiber = true) {
+	public bool SetLine(PlayerData player, RelativePosition pos, bool tellNeiber = true) {
+		bool result = false;
+
 		if(tellNeiber && neibers[(int)pos] != null) {
-			neibers[(int)pos].SetLine(player, pos.Mirror(), false);
+			if(neibers[(int)pos].SetLine(player, pos.Mirror(), false)){
+				result = true;
+			}
 		}
 
 		linesTaken[(int)pos] = player;
 
-		CloseCheck(player);
+		if (CloseCheck(player)) {
+			result = true;
+		}
 
 		RpcUpdateLineOwner(player, pos);
+
+		return result;
 	}
 
 	[ClientRpc]
@@ -74,17 +82,16 @@ public class Block : NetworkBehaviour {
 	}
 
 	[ServerCallback]
-	public bool IsClosed(List<Block> checkedBlocks) {
+	public bool IsClosed() {
 
-		checkedBlocks.Add(this);
 
 		for (int i = 0; i < linesTaken.Length; i++) {
 			if (linesTaken[i] == null && neibers[i] == null) {
 				return false;
 			}
 
-			if (linesTaken[i] == null && !checkedBlocks.Contains(neibers[i])) {
-				if (!neibers[i].IsClosed(checkedBlocks)) return false;
+			if (linesTaken[i] == null) {
+				return false;
 			}
 		}
 
@@ -121,16 +128,19 @@ public class Block : NetworkBehaviour {
 	}
 
 	[ServerCallback]
-	private void CloseCheck(PlayerData player) {
-		if (IsClosed(new List<Block>())) {
+	private bool CloseCheck(PlayerData player) {
+		if (IsClosed()) {
 			List<Block> blocks = FindAll((int) pos.x, (int) pos.y, new List<Block>());
 			foreach (Block block in blocks) {
 				block.RpcUpdateOwner(player);
 			}
 			player.score += blocks.Count;
 			Manager.Find<PlayerManager>().FindPlayerObjectWithPlayerData(player).RpcOnPlayerDataChanged(player);
-			//player.playerObject.RpcOnPlayerDataChanged(player);
+
+			return true;
 		}
+
+		return false;
 	}
 
 }

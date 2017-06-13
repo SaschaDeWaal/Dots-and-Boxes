@@ -4,10 +4,10 @@ using UnityEngine.Networking;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Prototype.NetworkLobby;
 
-namespace Prototype.NetworkLobby
-{
-    //Player entry in the lobby. Handle selecting color/setting name & getting ready for the game
+
+    //Player entry in the lobby. Handle selecting color/setting name & getting ready for the game 
     //Any LobbyHook can then grab it and pass those value to the game player prefab (see the Pong Example in the Samples Scenes)
     public class LobbyPlayer : NetworkLobbyPlayer
     {
@@ -99,9 +99,14 @@ namespace Prototype.NetworkLobby
             OnClientReady(false);
         }
 
+		public void SetName(string name) {
+			playerName = name;
+			CmdNameChanged(name);
+		}
+
         void SetupLocalPlayer()
         {
-            nameInput.interactable = true;
+            nameInput.interactable = false;
             remoteIcone.gameObject.SetActive(false);
             localIcone.gameObject.SetActive(true);
 
@@ -116,12 +121,12 @@ namespace Prototype.NetworkLobby
             readyButton.interactable = true;
 
             //have to use child count of player prefab already setup as "this.slot" is not set yet
-            if (playerName == "")
-                CmdNameChanged("Player" + (LobbyPlayerList._instance.playerListContentTransform.childCount-1));
+            //if (playerName == "")
+                //CmdNameChanged("Player" + (LobbyPlayerList._instance.playerListContentTransform.childCount-1));
 
             //we switch from simple name display to name input
             colorButton.interactable = true;
-            nameInput.interactable = true;
+            nameInput.interactable = false;
 
             nameInput.onEndEdit.RemoveAllListeners();
             nameInput.onEndEdit.AddListener(OnNameChanged);
@@ -172,7 +177,7 @@ namespace Prototype.NetworkLobby
                 textComponent.color = Color.white;
                 readyButton.interactable = isLocalPlayer;
                 colorButton.interactable = isLocalPlayer;
-                nameInput.interactable = isLocalPlayer;
+                nameInput.interactable = false;
             }
         }
 
@@ -312,4 +317,4 @@ namespace Prototype.NetworkLobby
             }
         }
     }
-}
+
